@@ -37,7 +37,9 @@
     "test:integration": "npm run test-llm-connections && npm run regime:test && npm run test-rag-altura",
     "process-kb-local": "node scripts/process-knowledge-base-local.mjs",
     "kb:process": "node scripts/process-knowledge-base-local.mjs",
-    "kb:clean": "rm -rf pdpoa_knowledge_base_local"
+    "kb:clean": "rm -rf pdpoa_knowledge_base_local",
+    "kb:import-complete": "node scripts/import-knowledge-base-complete.mjs",
+    "kb:import": "node scripts/import-knowledge-base-complete.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

@@ -88,6 +88,9 @@
       "Bash(SUPABASE_URL=https://ngrqwmvuhvjkeohesbxs.supabase.co SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ncnF3bXZ1aHZqa2VvaGVzYnhzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzYwOTAxNywiZXhwIjoyMDY5MTg1MDE3fQ.7jVZP70RAjpfFPfehZt5Gr3vSxn8DZ3YyPJNjCwZXEo node -e \"const{createClient}=require(''@supabase/supabase-js'');const s=createClient(''https://ngrqwmvuhvjkeohesbxs.supabase.co'',process.env.SUPABASE_SERVICE_ROLE_KEY);(async()=>{console.log(''ZOT 02 DATA:'');const{data:z2}=await s.from(''regime_urbanistico_consolidado'').select(''*'').eq(''Zona'',''ZOT 02'').limit(5);z2?.forEach(r=>console.log(''- Bairro:'',r.Bairro,''| Altura:'',r.Altura_Maxima___Edificacao_Isolada,''m | CA:'',r.Coeficiente_de_Aproveitamento___Basico));console.log(''\\nPETRÓPOLIS DATA:'');const{data:pet}=await s.from(''regime_urbanistico_consolidado'').select(''*'').eq(''Bairro'',''PETRÓPOLIS'').limit(5);pet?.forEach(r=>console.log(''- Zona:'',r.Zona,''| Altura:'',r.Altura_Maxima___Edificacao_Isolada,''m | CA:'',r.Coeficiente_de_Aproveitamento___Basico));})()\")"
     ],
     "deny": [],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "C:\\Users\\Aurora\\OneDrive - PUCRS - BR\\Documentos\\GitHub\\chat-pd-poa-clean"
+    ]
   }
 }
