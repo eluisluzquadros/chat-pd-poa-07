@@ -1,4 +1,4 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -8,7 +8,7 @@ Chat PD POA is a legal consultation system for Porto Alegre's urban planning reg
 
 ### Core Features
 - **Agentic RAG System**: Multi-stage retrieval with 86.7% accuracy (target: >95%)
-- **Multi-LLM Support**: Intelligent routing between OpenAI, Claude, Gemini, Groq, etc.
+- **Multi-LLM Support**: Intelligent routing between OpenAI, Claude, Gemini, DeepSeek, ZhipuAI.
 - **Dual Data Architecture**: Semantic search (chunks) + Structured SQL (tables)
 - **QA Validation System**: 125 test cases for continuous accuracy monitoring
 - **Real-time Chat**: Context-aware conversations with legal citations
@@ -178,7 +178,7 @@ The `legal_articles` table contains **1,998 records** with 4 document types:
    - Cost optimization logic
 
 3. **QA Validation System**
-   - 121+ test cases covering legal queries
+   - 125 test cases covering legal queries
    - Automated accuracy benchmarking
    - Cross-validation capabilities
 

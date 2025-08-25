@@ -781,11 +781,9 @@ serve(async (req) => {
       }
     }
     
-    // Combine regime data and fallback data for processing
-    const allRegimeData = [
-      ...(allRegimeData || []),
-      ...(regimeFallbackData || [])
-    ];
+    // Keep regime data and fallback data separate for better processing
+    const allRegimeData = regimeData || [];
+    // regimeFallbackData will be handled separately in response synthesizer
     
     console.log(`🏗️ Total regime results: ${allRegimeData.length}`);
 
@@ -967,16 +965,50 @@ RESPONDA com base APENAS no contexto acima. Se encontrar o mesmo artigo em múlt
     const startTime = Date.now();
     let response = '';
     
-    // Enhanced synthesizer temporarily disabled for testing
-    // TODO: Re-enable after fixing response issues
-    /*
+    // Try response synthesizer for better REGIME_FALLBACK handling
     try {
-      console.log('🚀 Trying enhanced response synthesizer...');
+      console.log('🚀 Trying response synthesizer...');
       const supabaseUrl = Deno.env.get('SUPABASE_URL');
       const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
       
       if (supabaseUrl && serviceKey) {
-        const enhancedResponse = await fetch(`${supabaseUrl}/functions/v1/response-synthesizer-enhanced`, {
+        // Prepare agent results with proper structure
+        const agentResults = [];
+        
+        // Add regime data
+        if (regimeData && regimeData.length > 0) {
+          agentResults.push({
+            type: 'regime',
+            data: {
+              regime_data: regimeData
+            },
+            confidence: 0.95
+          });
+        }
+        
+        // Add REGIME_FALLBACK data
+        if (regimeFallbackData && regimeFallbackData.length > 0) {
+          agentResults.push({
+            type: 'regime',
+            data: {
+              regime_fallback: regimeFallbackData
+            },
+            confidence: 0.85
+          });
+        }
+        
+        // Add legal documents
+        if (legalDocuments && legalDocuments.length > 0) {
+          agentResults.push({
+            type: 'legal',
+            data: {
+              legal_documents: legalDocuments
+            },
+            confidence: 0.9
+          });
+        }
+        
+        const synthesisResponse = await fetch(`${supabaseUrl}/functions/v1/response-synthesizer`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${serviceKey}`,
@@ -984,33 +1016,21 @@ RESPONDA com base APENAS no contexto acima. Se encontrar o mesmo artigo em múlt
           },
           body: JSON.stringify({
             originalQuery: query,
-            agentResults: documents.map((doc: any) => ({
-              agent: doc.document_type ? 'legal' : 'regime',
-              data: doc,
-              metadata: {
-                source: doc.document_type || 'regime_urbanistico',
-                confidence: doc.similarity || 0.8
-              }
-            })),
-            metadata: {
-              intent: articleMatch ? 'search_article' : 'general_search',
-              extraction_confidence: 0.8
-            }
+            agentResults: agentResults
           }),
         });
         
-        if (enhancedResponse.ok) {
-          const enhancedData = await enhancedResponse.json();
-          if (enhancedData.response) {
-            response = enhancedData.response;
-            console.log('✅ Enhanced synthesizer response received');
+        if (synthesisResponse.ok) {
+          const synthesisData = await synthesisResponse.json();
+          if (synthesisData.response) {
+            response = synthesisData.response;
+            console.log('✅ Response synthesizer succeeded');
           }
         }
       }
     } catch (error) {
-      console.log('⚠️ Enhanced synthesizer unavailable, using standard LLM:', error.message);
+      console.log('⚠️ Response synthesizer unavailable, using standard LLM:', error.message);
     }
-    */
     
     // If no enhanced response, use standard LLM with FallbackManager
     if (!response) {

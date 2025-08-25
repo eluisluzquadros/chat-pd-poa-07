@@ -1,4 +1,4 @@
-# Chat PD POA - Sistema de Consulta Urbanística de Porto Alegre
+﻿# Chat PD POA - Sistema de Consulta Urbanística de Porto Alegre
 
 [![Status](https://img.shields.io/badge/status-beta-yellow)]()
 [![Accuracy](https://img.shields.io/badge/accuracy-86.7%25-orange)]()
@@ -17,6 +17,23 @@ O sistema utiliza técnicas avançadas de RAG (Retrieval-Augmented Generation) p
 - 🏘️ Zoneamento urbano
 - 📜 Artigos da LUOS e PDUS
 
+# usando apenas a base de conhecimento armazenada no supabase deste projeto o Agente deve conseguir responder:
+- escreva um resumo de até 25 palavras sobre a lei do plano diretor de porto alegre
+- qual é a altura máxima do aberta dos morros
+- quantos bairros estão "Protegidos pelo Sistema Atual" para proteção contra enchentes?
+- qual artigo da LUOS trata da Certificação em Sustentabilidade Ambiental?
+- como o Regime Volumétrico é tratado na LUOS?
+- o que afirma literalmente o Art 1º da LUOS?
+- do que se trata o Art. 119 da LUOS?
+- o Art. 3º O Plano Diretor Urbano Sustentável de Porto Alegre será regido por princípios fundamentais. quais são eles?
+- o que posso construir no bairro Petrópolis (esperado retornar altura máxima e coef. básico e máx de cada zona do bairro)
+- qual a altura máxima da construção dos prédios em Porto Alegre?
+- o que diz o artigo 38 da luos?
+- o que diz o artigo 5? (deve contextualizar o usuário de que existem diferentes leis e apresentar o artigo de cada lei separadamente)
+- resuma a parte I do plano diretor (deve ser capaz de recuperar conteúdo de acordo com a estrutura hierárquica completa: Títulos → Capítulos → Seções → Artigos
+- resuma o conteúdo do do título 1 do pdus
+- o que diz o artigo 1 do pdus
+
 ## 🚀 Funcionalidades Principais
 
 ### Para Usuários
@@ -27,15 +44,17 @@ O sistema utiliza técnicas avançadas de RAG (Retrieval-Augmented Generation) p
 
 ### Para Administradores
 - **Dashboard de Qualidade**: Monitoramento de acurácia em tempo real
+- **Dashboard de Benchmark de LLMs** : Compara a acuraria de múltiplos modelos com base na resposta de casos de teste (groud truth)
 - **Sistema de Validação**: 125 casos de teste automatizados
 - **Análise de Gaps**: Identificação de lacunas no conhecimento
 - **Métricas de Performance**: Tempo de resposta, uso de tokens, cache hits
+
 
 ## 🛠️ Tecnologias
 
 - **Frontend**: React + TypeScript + Vite + Tailwind CSS
 - **Backend**: Supabase (PostgreSQL + Edge Functions)
-- **IA/LLM**: OpenAI GPT-4, Claude 3, Gemini Pro, Groq
+- **Mult-IA/LLM** (5 Provedores e 30 LLms): OpenAI, Claude, Gemini, Deepseek, ZhipuAI
 - **Busca**: pgvector (embeddings) + Full-text search
 - **Deploy**: Supabase Cloud + Vercel
 

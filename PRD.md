@@ -1,4 +1,4 @@
-# PRD - Product Requirements Document
+﻿# PRD - Product Requirements Document
 ## Chat PD POA - Sistema de Consulta Urbanística
 
 **Versão**: 2.0  
@@ -24,7 +24,7 @@ Democratizar o acesso à legislação urbanística de Porto Alegre através de u
 Sistema de chat inteligente que:
 - Responde perguntas em linguagem natural
 - Cita fontes legais específicas
-- Fornece parâmetros construtivos por localização
+- Fornece parâmetros construtivos por nome de bairro ou código de zona
 - Mantém contexto de conversação
 - Valida respostas com casos de teste
 
@@ -122,11 +122,13 @@ Sistema de chat inteligente que:
 - **Status**: ✅ Implementado
 - **Descrição**: Seleção automática do melhor modelo
 - **Modelos Suportados**:
-  - OpenAI (GPT-4, GPT-3.5)
-  - Anthropic (Claude 3 Opus/Sonnet/Haiku)
+  - OpenAI (GPT-5, GPT-4, nano,)
+  - Anthropic (Claude Opus/Sonnet/Haiku)
   - Google (Gemini Pro/Flash)
-  - Groq (Mixtral, Llama)
-  - DeepSeek
+  - DeepSeek (Chat/Deep/Code)
+  - ZhipuAI(GLM-4.5, GLM-4.5-v)
+	
+
 
 ## 3. Requisitos Não-Funcionais
 

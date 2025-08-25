@@ -21,6 +21,65 @@ Contribua com sugestões: https://bit.ly/4o7AWqb ↗ ↗
 Participe da Audiência Pública: https://bit.ly/4oefZKm ↗ ↗
 💬 Dúvidas? planodiretor@portoalegre.rs.gov.br`;
 
+// 🔍 REGIME_FALLBACK DATA EXTRACTOR - Extrai valores de texto não estruturado
+function extractRegimeValues(fullContent: string): {
+  altura_maxima?: number[],
+  coef_aproveitamento_basico?: number[],
+  coef_aproveitamento_maximo?: number[],
+  zona?: string[],
+  bairro?: string
+} {
+  const extracted: any = {};
+  
+  // Extrair TODAS as alturas máximas (XX metros, XXm)
+  const alturaMatches = fullContent.match(/(\d{1,3})\s*metros?/gi);
+  if (alturaMatches) {
+    extracted.altura_maxima = [...new Set(alturaMatches.map(m => {
+      const num = m.match(/(\d{1,3})/)?.[1];
+      return num ? parseInt(num) : null;
+    }).filter(Boolean))];
+  }
+  
+  // Extrair TODOS os coeficientes (X,XX ou X.XX)
+  const coefMatches = fullContent.match(/coeficiente[^\d]*(\d+[,.]\d+)/gi);
+  if (coefMatches) {
+    const coefficients = coefMatches.map(m => {
+      const numMatch = m.match(/(\d+[,.]\d+)/);
+      return numMatch ? parseFloat(numMatch[1].replace(',', '.')) : null;
+    }).filter(Boolean);
+    
+    if (coefficients.length > 0) {
+      // Separar básico (menores) e máximo (maiores)
+      const sorted = [...new Set(coefficients)].sort((a, b) => a - b);
+      extracted.coef_aproveitamento_basico = sorted.slice(0, Math.ceil(sorted.length / 2));
+      extracted.coef_aproveitamento_maximo = sorted.slice(Math.ceil(sorted.length / 2));
+    }
+  }
+  
+  // Extrair TODAS as zonas (ZOT XX, ZOU XX, etc)
+  const zonaMatches = fullContent.match(/Z[A-Z]{2,3}\s*\d+[A-Z-]*\d*/gi);
+  if (zonaMatches) {
+    extracted.zona = [...new Set(zonaMatches.map(z => z.toUpperCase()))];
+  }
+  
+  // Extrair bairro do conteúdo (genérico, sem hardcoding)
+  // Busca por padrão "BAIRRO_NOME" ou "Bairro: NOME"
+  const bairroPattern = /(?:BAIRRO[_:\s]+)([A-ZÀ-Ú][A-ZÀ-Ú\s]+)/i;
+  const bairroMatch = fullContent.match(bairroPattern);
+  if (bairroMatch) {
+    extracted.bairro = bairroMatch[1].trim();
+  } else {
+    // Fallback: buscar por padrão "# NOME DO BAIRRO" no início do conteúdo
+    const headerMatch = fullContent.match(/^#\s+([A-ZÀ-Ú][A-ZÀ-Ú\s]+)$/m);
+    if (headerMatch) {
+      extracted.bairro = headerMatch[1].trim();
+    }
+  }
+  
+  console.log('📊 Extracted from REGIME_FALLBACK:', extracted);
+  return extracted;
+}
+
 // 🎯 MULTI-FIELD PARSER - Detecta campos específicos solicitados
 function parseQueryIntent(query: string): { 
   requestedFields: string[], 
@@ -163,6 +222,69 @@ ${FOOTER_TEMPLATE}`;
   // 🏗️ REGIME QUERIES - MULTI-FIELD INTELLIGENCE
   if (regimeData.length > 0) {
     console.log('📊 BUILDING MULTI-FIELD REGIME RESPONSE');
+    
+    // Generic handler for ANY bairro query - NO HARDCODING!
+    const isAskingForHeight = queryLower.includes('altura') || queryLower.includes('gabarito');
+    const isAskingForCoef = queryLower.includes('coeficiente') || queryLower.includes('aproveitamento');
+    const isAskingForConstruction = queryLower.includes('construir') || queryLower.includes('edificar');
+    
+    // If data has bairro info and query is specific
+    if (regimeData[0]?.bairro && (isAskingForHeight || isAskingForCoef || isAskingForConstruction)) {
+      const bairroName = regimeData[0].bairro;
+      let response = `Para o bairro ${bairroName}:\n\n`;
+      
+      // Group data by zona if multiple zones exist
+      const zoneGroups = {};
+      regimeData.forEach(r => {
+        const zones = Array.isArray(r.zona) ? r.zona : [r.zona || 'Geral'];
+        zones.forEach(z => {
+          if (!zoneGroups[z]) zoneGroups[z] = [];
+          zoneGroups[z].push(r);
+        });
+      });
+      
+      // Format response based on what user is asking
+      Object.entries(zoneGroups).forEach(([zona, records]) => {
+        if (zona !== 'Geral') {
+          response += `**${zona}:**\n`;
+        }
+        
+        // Aggregate unique values from all records in this zone
+        const heights = [...new Set(records.flatMap(r => {
+          if (Array.isArray(r.altura_maxima)) return r.altura_maxima;
+          if (r.altura_maxima) return [r.altura_maxima];
+          return [];
+        }).filter(Boolean))];
+        
+        const coefBasicos = [...new Set(records.flatMap(r => {
+          if (Array.isArray(r.coef_aproveitamento_basico)) return r.coef_aproveitamento_basico;
+          if (r.coef_aproveitamento_basico) return [r.coef_aproveitamento_basico];
+          return [];
+        }).filter(Boolean))];
+        
+        const coefMaximos = [...new Set(records.flatMap(r => {
+          if (Array.isArray(r.coef_aproveitamento_maximo)) return r.coef_aproveitamento_maximo;
+          if (r.coef_aproveitamento_maximo) return [r.coef_aproveitamento_maximo];
+          return [];
+        }).filter(Boolean))];
+        
+        if (isAskingForHeight && heights.length > 0) {
+          response += `• Altura máxima: ${heights.sort((a, b) => a - b).map(h => `${h} metros`).join(', ')}\n`;
+        }
+        
+        if ((isAskingForCoef || isAskingForConstruction) && coefBasicos.length > 0) {
+          response += `• Coeficiente básico: ${coefBasicos.sort((a, b) => a - b).join(', ')}\n`;
+        }
+        
+        if ((isAskingForCoef || isAskingForConstruction) && coefMaximos.length > 0) {
+          response += `• Coeficiente máximo: ${coefMaximos.sort((a, b) => a - b).join(', ')}\n`;
+        }
+        
+        response += '\n';
+      });
+      
+      return response + FOOTER_TEMPLATE;
+    }
     
     // 🎯 FIELD-SPECIFIC RESPONSE
     if (parsedIntent.requestedFields.length > 0) {
@@ -400,6 +522,7 @@ serve(async (req) => {
     let allZotData = [];
     let allRiskData = [];
     let semanticAgents = [];
+    let regimeFallbackData = [];
     
     if (agentResults && Array.isArray(agentResults)) {
       agentResults.forEach((agent, index) => {
@@ -408,6 +531,7 @@ serve(async (req) => {
           hasZotData: !!agent.data?.zot_data,
           hasRiskData: !!agent.data?.risk_data,
           hasLegalData: !!agent.data?.legal_documents,
+          hasRegimeFallback: !!agent.data?.regime_fallback,
           confidence: agent.confidence
         });
         
@@ -427,11 +551,31 @@ serve(async (req) => {
           allRiskData.push(...agent.data.risk_data);
         }
         
+        // Extract REGIME_FALLBACK unstructured data
+        if (agent.data?.regime_fallback && Array.isArray(agent.data.regime_fallback)) {
+          console.log(`🔍 Found ${agent.data.regime_fallback.length} REGIME_FALLBACK records from agent ${index}`);
+          // Parse unstructured text into structured format
+          agent.data.regime_fallback.forEach(record => {
+            if (record.full_content) {
+              const extracted = extractRegimeValues(record.full_content);
+              if (Object.keys(extracted).length > 0) {
+                regimeFallbackData.push(extracted);
+              }
+            }
+          });
+        }
+        
         // Extract semantic context for legal/conceptual queries
         if (agent.type === 'legal' && agent.confidence > 0.7) {
           semanticAgents.push(agent);
         }
       });
+    }
+    
+    // Merge REGIME_FALLBACK data into allRegimeData if no structured data exists
+    if (allRegimeData.length === 0 && regimeFallbackData.length > 0) {
+      console.log('📋 Using extracted REGIME_FALLBACK data as primary regime data');
+      allRegimeData = regimeFallbackData;
     }
 
     console.log(`✅ EXTRACTED DATA:`, {
