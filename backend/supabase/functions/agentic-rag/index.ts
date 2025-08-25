@@ -700,6 +700,7 @@ serve(async (req) => {
           .from('legal_articles')
           .select('*')
           .or(searchConditions.join(','))
+          .in('document_type', ['LUOS', 'PDUS', 'REGIME_FALLBACK', 'QA_CATEGORY'])  // Include ALL document types
           .limit(15);
         
         if (textSearchResults && textSearchResults.length > 0) {
@@ -724,10 +725,29 @@ serve(async (req) => {
             .from('legal_articles')
             .select('*')
             .or(`full_content.ilike.%${query}%,article_text.ilike.%${query}%`)
+            .in('document_type', ['LUOS', 'PDUS', 'REGIME_FALLBACK', 'QA_CATEGORY'])  // Include ALL document types
             .limit(15);
           legalDocuments = directResult.data;
         }
       }
+    }
+    
+    // Search in qa_test_cases for validated answers
+    console.log('📚 Searching qa_test_cases for validated answers...');
+    let qaTestCaseData = null;
+    try {
+      const { data: qaResults } = await supabase
+        .from('qa_test_cases')
+        .select('*')
+        .or(`question.ilike.%${query}%,expected_answer.ilike.%${query}%`)
+        .limit(5);
+      
+      if (qaResults && qaResults.length > 0) {
+        qaTestCaseData = qaResults;
+        console.log(`✅ Found ${qaResults.length} validated answers in qa_test_cases`);
+      }
+    } catch (qaError) {
+      console.log('⚠️ Error searching qa_test_cases:', qaError.message);
     }
     
         // Search in regime_urbanistico_consolidado (structured urban planning data)
@@ -813,7 +833,7 @@ serve(async (req) => {
     const combinedResults = ResultReranker.combineResults(
       legalDocuments || [],
       allRegimeData || [],
-      [] // hierarchy results if available
+      qaTestCaseData || [] // Include validated QA answers
     );
     
     // Rerank results based on query relevance
